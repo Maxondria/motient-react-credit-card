@@ -14,57 +14,73 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
 
-### `yarn test`
+## Quick Notes
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `yarn build`
+### Know pitfalls
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+** It is important to note that currently, the codebase has zero coverage. Not tests have been written yet, as should be the case.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+** Some code is not clean enough, it could use a little refactoring to make it better.
 
-### `yarn eject`
+** There are libraries that could be used to simplify the codebase further, for example a form library could help so much.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+** We could set up linters, and pre-commit hooks to ensure a consistent code structure.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Architecture
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The main App component in `src/components/App` registers the app's routes.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+It does this by immediately navigating the user to the `/add-card` route which renders the `<CreditCard />` component.
 
-## Learn More
+This component provides state (card context) to all it's children.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+The `<CardForm />` utilises the `render` prop pattern to render the `<CardPreview />` component, providing it with `card` state values.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+The reason for this, is that the form component becomes the only place we update state from, and we can then just pass it around to the card preview for mere display purposes.
 
-### Code Splitting
+Below is the directory structure of the app.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```markdown
+├── components
+│   └── App
+│       └── index.js
+├── containers
+│   └── CreditCard
+│       ├── components
+│       │   ├── CardForm
+│       │   │   ├── components
+│       │   │   │   └── Error
+│       │   │   │       └── index.js
+│       │   │   ├── index.js
+│       │   │   └── utils.js
+│       │   └── CardPreview
+│       │       └── index.js
+│       └── index.js
+├── index.js
+├── reportWebVitals.js
+├── setupTests.js
+├── store
+│   └── index.js
+├── styles
+│   ├── _base.scss
+│   ├── _card.scss
+│   ├── _form.scss
+│   ├── _transitions.scss
+│   └── index.scss
+└── utils
+    └── calendar.js
+```
 
-### Analyzing the Bundle Size
+This structure was chosen because it is relatively easy to scale.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- `components` (top level) keeps components that can be shared and reused across the app, together with the main `App` component eg. Buttons, Inputs, Banners etc. These can the be reused in different containers, and container child components
 
-### Making a Progressive Web App
+- The main `App` component could also go into containers but I felt like it reads better if in the main `index.js` (entry file) of the `src` directory, we imported the`App` component from a "components" directory.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- `containers` are components that represent a full page (sort of). These normally compose multiple smaller components to represent a page.
 
-### Advanced Configuration
+- Each container component has it's own `components` directory, it's own utils directory, hooks, etc. This makes it easy, if in future we want to share these components across repositories and different projects. We can easily package them and distribute them.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Styling is done centrally for now in the `src/styles` directory but this doesn't scale well. What should happen should be, moving each component's styles to that specific component's directory so it is isolated in case we want package the component.
